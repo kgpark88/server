@@ -17,6 +17,7 @@
 - pip install django-cors-headers
 - pip install konlpy
 - pip install torch==1.8.1
+- pip install transformers
 
 ## 4. 테이블 생성
 - cd server
