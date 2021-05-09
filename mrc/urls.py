@@ -8,8 +8,9 @@ from django.views.generic import TemplateView
 from mrc import views
 
 urlpatterns = [
-    path('', views.mrc, name='get-answer'),
-    path('get-sentence/', views.get_sentence, name='get-sentence'),
-    path('get-passage/', views.get_passage, name='get-passage'),
-    path('get-question/', views.get_question, name='get-question'),
+    path('qa', views.question_answer, name='qa'),
+    path('qa-pipeline', views.question_answer_pipeline, name='qa-pipeline'),
+    path('titles', views.titles, name='titles'),
+    path('sentence', views.sentence, name='sentence'),
+    path('question', views.question, name='question'),
 ]

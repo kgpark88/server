@@ -1,113 +1,54 @@
-import re
-import random
-import copy
-import json
-import logging
-import math
-import sys
-import collections
 import os
-import unicodedata
-import random
-import string
-import re
-import numpy as np
-
-
 import torch
-import torch.nn as nn
-import torch.nn.init as init
-import torch.nn.functional as F
-from torch.nn.parameter import Parameter
-from torch.nn import CrossEntropyLoss, Dropout, Embedding, Softmax
-from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
 
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from rest_framework.views import APIView
-from rest_framework.decorators import api_view
 
-from mrc.models import Passage, Question
-from mrc.bert_model import Config, BertTokenizer, QuestionAnswering, SquadExample, convert_examples_to_features, RawResult, predictions
+from mrc.models import Sentence, Question
 
+from mrc.bert_model import Config, BertTokenizer, QuestionAnswering, SquadExample 
+from mrc.bert_model import convert_examples_to_features, RawResult, predictions
+
+from transformers import ElectraTokenizer, ElectraForQuestionAnswering, pipeline
 
 def cleanText(readData):
-    #텍스트에 포함되어 있는 특수 문자 제거
     text = re.sub("[﻿6-=+,#/\?:^$.@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'…》]", "", readData)
     return text
 
 @api_view(['GET'])
-def get_sentence(request):
-    '''
-    지문 문장 REST API 제공
-    ---
-    지문 문장 REST API 제공
-    '''
-    qs = Passage.objects.all().order_by('id')
-    sentences = []
-    context = {'data': {}}
+def titles(request):
+    qs = Sentence.objects.all().order_by('id')[:200]
+    titles = []
     for q in qs:
-        db_data = {
-          'id': q.id,
-          'no': q.no or '',
-          'sentence': q.sentence or '',
-          'passage': q.passage or '',
-          'source': q.source or ''
-        }
-        sentences.append(q.sentence)
-    print(f'GET Passage Title : {len(sentences)}건')
-    context = {'sentences': sentences}
-    return JsonResponse(context)
-
-
-@swagger_auto_schema(method='post', request_body=openapi.Schema(
-    type=openapi.TYPE_OBJECT, 
-    properties={
-        'title': openapi.Schema(type=openapi.TYPE_STRING, description='문장'),
-    }
-))
-@api_view(['POST'])
-def get_passage(request):
-    '''
-    문장 REST API 제공
-    ---
-    문장 REST API 제공
-    '''
-    title = request.data['title'].strip()
-    qs1 = Passage.objects.filter(sentence=title)
-
-    qas = []
-    qs2 = Question.objects.filter(passage__id=qs1[0].id).order_by('no')
-    for q in qs2:
-        qas.append({"question": q.question, "answer": q.answer})
-
-    context = {'passage': qs1[0].passage, 'qas': qas}
-
-    print(qs1[0].id)
-    print(context)
-    return JsonResponse(context)
-
-
+        titles.append({'sid': q.sid, 'title': q.title})
+    return JsonResponse({'titles':titles})
 
 @api_view(['POST'])
-def get_question(request):
-    '''
-    문장에 관련된 질문 REST API 제공
-    ---
-    문장에 관련된 질문문장 REST API 제공
-    '''
-    passage_id = int(request.data['passage_id'])
+def sentence(request):
+    sid = request.data.get('sid')
+    sentence = Sentence.objects.filter(sid=sid)
+    if sentence:
+        qas = []
+        question = Question.objects.filter(sid=sid).order_by('qid')
+        for q in question:
+            qas.append({"question": q.question, "answer": q.answer})
+        res = {'sentence': sentence[0].context, 'qas': qas}
+    else:
+        res = {'sentence': None, 'qas': None}
+    return JsonResponse(res)
+
+@api_view(['POST'])
+def question(request):
+    qid = int(request.data.get('qid'))
     question = []
-    qs = Question.objects.filter(passage__id=passage_id)
+    qs = Question.objects.filter(qid=qid)
     for q in qs:
         question.append(q.question)
     random.shuffle(question)
-    # print(f'[Passage ID] : {passage_id}')
-    # print(f'[Question] : {question}')
-    context = {'question': question}
-    return JsonResponse(context)
+    res = {'question': question}
+    return JsonResponse(res)
 
 
 @swagger_auto_schema(method='post', request_body=openapi.Schema(
@@ -118,14 +59,14 @@ def get_question(request):
     }
 ))
 @api_view(['POST'])
-def mrc(request):
+def question_answer(request):
     '''
     기계독해 REST API 제공
     ---
     기계독해 REST API 제공
     '''
     qas_id = '1234567-0-0'
-    passage = request.data['passage']
+    sentence = request.data['sentence']
     question = request.data['question'].strip()
 
     max_seq_length = 512
@@ -156,7 +97,7 @@ def mrc(request):
     eval_examples = [SquadExample(
                         qas_id=qas_id,
                         question_text=question,
-                        doc_tokens=[passage],
+                        doc_tokens=[sentence],
                         orig_answer_text=orig_answer_text,
                         start_position=start_position,
                         end_position=end_position,
@@ -188,7 +129,7 @@ def mrc(request):
                       max_answer_length, False, False, 
                       False, 0.0)
     answer = list(pred.values())[0]
-    start_index = passage.find(answer)
+    start_index = sentence.find(answer)
     end_index = start_index +len(answer)
 
     no_answer = ['잘 모르겠어요.', '좀 더 공부할께요.', '저도 궁금하네요.', '음...', '뭘까요?']
@@ -198,7 +139,35 @@ def mrc(request):
         start_index = 0
         end_index = 0
 
-    context = {'answer': answer, 'start_index': start_index, 'end_index': end_index, 'probability':probability }
+    context = {'answer': answer, 'start': start_index, 'end': end_index, 'score':probability }
     return JsonResponse(context)
 
 
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+    type=openapi.TYPE_OBJECT, 
+    properties={
+        'passage': openapi.Schema(type=openapi.TYPE_STRING, description='문장'),
+        'question': openapi.Schema(type=openapi.TYPE_STRING, description='질문'),
+    }
+))
+@api_view(['POST'])
+def question_answer_pipeline(request):
+    '''
+    Question Answering REST API
+    '''
+    sentence = request.data['sentence'].strip()
+    question = request.data['question'].strip()
+
+    tokenizer = ElectraTokenizer.from_pretrained('monologg/koelectra-base-v2-finetuned-korquad')
+    model = ElectraForQuestionAnswering.from_pretrained('monologg/koelectra-base-v2-finetuned-korquad')
+
+    qa = pipeline('question-answering', tokenizer=tokenizer, model=model)
+    ans = qa({'context': sentence, 'question': question})
+    res = {
+        'answer': ans['answer'], 
+        'start': ans['start'], 
+        'end': ans['end'], 
+        'score':ans['score'] 
+    }
+    print(res)
+    return JsonResponse(res)
