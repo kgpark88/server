@@ -18,12 +18,12 @@ https://sites.google.com/view/aitutorial 에서 bert_small.zip 파일을 다운�
 - pip install torch==1.8.1
 
 ## 4. 테이블 생성
+- cd server
 - python manage.py migrate
 - python manage.py makemigrations mrc
 - python manage.py migrate mrc
 
 ## 5. 데이터베이스 관리자 계정 생성
-- cd server
 - python manage.py createsuperuser
 
 ## 6. MRC QA 데이터셋 로드
