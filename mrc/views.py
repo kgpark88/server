@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Kyung-Gyu Park  kgpark88@gmail.com  danny.park@kt.com
-"""
 import re
 import random
 import copy
