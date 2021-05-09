@@ -54,7 +54,7 @@ def question(request):
 @swagger_auto_schema(method='post', request_body=openapi.Schema(
     type=openapi.TYPE_OBJECT, 
     properties={
-        'passage': openapi.Schema(type=openapi.TYPE_STRING, description='문장'),
+        'sentence': openapi.Schema(type=openapi.TYPE_STRING, description='문장'),
         'question': openapi.Schema(type=openapi.TYPE_STRING, description='질문'),
     }
 ))
