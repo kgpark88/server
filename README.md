@@ -3,8 +3,10 @@
 ## 1. BERT 모델 다운로드
 https://sites.google.com/view/aitutorial 에서 bert_small.zip 파일을 다운로드하여서 프로젝트 디렉토리에 압축해제 하세요.
 
-## 2. 파이썬 가상환경 생성
+## 2. 파이썬 가상환경 생성 및 실행
 - python –m venv venv 
+- Windows : venv\Scripts\activate.bat
+- Linux : source venv/bin/activate
 
 ## 3. 파이썬 패키지 설치
 - pip install django
