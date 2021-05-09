@@ -27,7 +27,7 @@
 ## 5. 데이터베이스 관리자 계정 생성
 - python manage.py createsuperuser
 
-## 6. MRC QA 데이터셋 로드
+## 6. KorQuAD 샘플 데이터셋 로드
 - python manage.py shell < load_korquad_data.py
 
 ## 7. 백엔드 실행
