@@ -4,8 +4,9 @@
 git clone https://github.com/kgpark88/server
 
 ## 2. BERT 모델과 KorQuAD 샘플 데이터셋 다운로드
-- https://sites.google.com/view/ai-tutorial 에서 bert_small.zip 파일을 다운로드하여서 프로젝트 디렉토리에 압축해제 하세요.
-- 그리고, KorQuAD_v1.0_train.json, KorQuAD_v1.0_dev.json 파일을 프로젝트 디렉토리에 다운로드 하세요.
+- https://sites.google.com/view/ai-tutorial 에서 [자연어처리] 메뉴를 클릭하세요.
+- 모든 파일을 server/bert_small/  디렉토리에 다운로드 하세요.
+-  KorQuAD_v1.0_train.json, KorQuAD_v1.0_dev.json 파일은 server/ 디렉토리에 다운로드 하세요.
 
 ## 3. 파이썬 가상환경 생성 및 실행
 - python –m venv venv 
