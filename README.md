@@ -47,3 +47,14 @@ git clone https://github.com/kgpark88/server
 ## 11. 프론트엔드 실행
 - npm run serve
 
+## 서버 실행 화면
+![image](https://user-images.githubusercontent.com/17672596/142607252-a4aed5c0-9ccd-45c8-ac1d-ccc6f911d8c8.png)
+
+![image](https://user-images.githubusercontent.com/17672596/142607302-2f63e975-b333-429d-b9f0-4f828caf7e19.png)
+
+
+## 프론트엔드 실행 화면
+![image](https://user-images.githubusercontent.com/17672596/142607326-21c86afe-8c5e-44b7-a62f-9728f64f4082.png)
+
+![image](https://user-images.githubusercontent.com/17672596/142607340-75896bdd-f9f2-4dda-bc36-38c999a0303d.png)
+
